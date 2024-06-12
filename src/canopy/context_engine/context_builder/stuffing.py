@@ -16,6 +16,7 @@ from canopy.models.data_models import Context, ContextContent
 class ContextSnippet(BaseModel):
     source: str
     text: str
+    metadata: dict
 
 
 class ContextQueryResult(BaseModel):
@@ -60,7 +61,9 @@ class StuffingContextBuilder(ContextBuilder):
         snippet_ids = []
         for doc, origin_query_idx in sorted_docs_with_origin:
             if doc.id not in seen_doc_ids and doc.text.strip() != "":
-                snippet = ContextSnippet(text=doc.text, source=doc.source)
+                snippet = ContextSnippet(
+                    text=doc.text, source=doc.source, metadata=doc.metadata
+                )
 
                 # try inserting the snippet into the context
                 context_query_results[origin_query_idx].snippets.append(
