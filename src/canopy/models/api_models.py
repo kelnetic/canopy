@@ -30,7 +30,7 @@ class ChatResponse(BaseModel):
     model: str
     choices: Sequence[_Choice]
     usage: TokenCounts
-    debug_info: dict = Field(default_factory=dict, exclude=True)
+    debug_info: dict = Field(default_factory=dict)
 
 
 class StreamingChatChunk(BaseModel):
