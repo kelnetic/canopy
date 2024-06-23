@@ -224,8 +224,8 @@ class ChatEngine(BaseChatEngine):
             debug_info['context'] = context.model_dump()
             debug_info['context'].update(context.debug_info)
         response_context = {}
-        response_context['context'] = context.model_dump()
-        response_context['context'].update(context.debug_info)
+        response_context = context.model_dump()
+        response_context.update(context.debug_info)
 
         if stream:
             return StreamingChatResponse(
