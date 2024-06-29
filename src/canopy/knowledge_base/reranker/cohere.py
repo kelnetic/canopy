@@ -23,9 +23,9 @@ class CohereReranker(Reranker):
     """
 
     def __init__(self,
-                 model_name: str = 'rerank-english-v2.0',
+                 model_name: str = 'rerank-english-v3.0',
                  *,
-                 top_n: int = 10,
+                 n_results: int = 5,
                  api_key: Optional[str] = None):
         """
             Initializes the Cohere reranker.
@@ -33,7 +33,7 @@ class CohereReranker(Reranker):
             Args:
                 model_name: The identifier of the model to use, one of :
                     rerank-english-v2.0, rerank-multilingual-v2.0
-                top_n: The number of most relevant documents return, defaults to 10
+                n_results: The number of most relevant documents to return out of the default top k
                 api_key: API key for Cohere. If not passed `CO_API_KEY` environment
                     variable will be used.
         """
@@ -53,7 +53,7 @@ class CohereReranker(Reranker):
             )
         self._client = cohere.Client(api_key=cohere_api_key)
         self._model_name = model_name
-        self._top_n = top_n
+        self._n_results = n_results
 
     def rerank(self, results: List[KBQueryResult]) -> List[KBQueryResult]:
         reranked_query_results: List[KBQueryResult] = []
@@ -62,14 +62,13 @@ class CohereReranker(Reranker):
             try:
                 response = self._client.rerank(query=result.query,
                                                documents=texts,
-                                               top_n=self._top_n,
                                                model=self._model_name)
             except CohereAPIError as e:
                 raise RuntimeError("Failed to rerank documents using Cohere."
                                    f" Underlying Error:\n{e.message}")
 
             reranked_docs = []
-            for rerank_result in response:
+            for rerank_result in response.results[:self._n_results]:
                 doc = result.documents[rerank_result.index].model_copy(
                     deep=True,
                     update=dict(score=rerank_result.relevance_score)
