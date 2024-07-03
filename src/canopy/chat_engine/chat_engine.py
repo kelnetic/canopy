@@ -230,7 +230,8 @@ class ChatEngine(BaseChatEngine):
         if stream:
             return StreamingChatResponse(
                 chunks=cast(Iterable[StreamingChatChunk], llm_response),
-                debug_info=debug_info
+                debug_info=debug_info,
+                context = response_context
             )
         else:
             response = cast(ChatResponse, llm_response)

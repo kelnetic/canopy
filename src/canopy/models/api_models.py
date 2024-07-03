@@ -44,4 +44,5 @@ class StreamingChatChunk(BaseModel):
 
 class StreamingChatResponse(BaseModel):
     chunks: Iterable[StreamingChatChunk]
+    context: dict = Field(default_factory=dict)
     debug_info: dict = Field(default_factory=dict, exclude=True)
