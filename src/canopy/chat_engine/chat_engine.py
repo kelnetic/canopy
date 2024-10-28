@@ -10,7 +10,7 @@ from canopy.tokenizer import Tokenizer
 from canopy.llm import BaseLLM, OpenAILLM
 from canopy.models.api_models import (StreamingChatChunk, ChatResponse,
                                       StreamingChatResponse, )
-from canopy.models.data_models import Context, Messages, SystemMessage
+from canopy.models.data_models import Context, ContextContent, Messages, SystemMessage
 from canopy.utils.config import ConfigurableMixin
 from canopy.utils.debugging import CANOPY_DEBUG_INFO
 
@@ -200,6 +200,7 @@ class ChatEngine(BaseChatEngine):
             ...     print(chunk.json())
         """  # noqa: E501
         context = self._get_context(messages, namespace)
+        context = context.model_copy(update={"content": self._filter_content(context.content)})
         llm_messages = self._history_pruner.build(
             chat_history=messages,
             max_tokens=self.max_prompt_tokens,
@@ -258,3 +259,20 @@ class ChatEngine(BaseChatEngine):
 
     async def aget_context(self, messages: Messages) -> Context:
         raise NotImplementedError
+
+    def _filter_content(self,
+                        content: ContextContent,
+                        threshold = 0.1
+                        ) -> ContextContent:
+        """
+        Filter out context snippets if the score doesn't reach the threshold. Otherwise raise an exception if all snippets are filtered out.
+        """
+        content_dict = content.model_dump()
+        for content_context in content_dict:
+            content_context["snippets"] = [
+                snippet for snippet in content_context["snippets"] if (snippet['score'] > threshold)
+            ]
+
+        if not any(content_context['snippets'] for content_context in content_dict):
+            raise Exception("No relevant snippets of context retrieved")
+        return type(content).model_validate(content)

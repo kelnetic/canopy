@@ -17,6 +17,7 @@ class ContextSnippet(BaseModel):
     source: str
     text: str
     metadata: dict
+    score: float
 
 
 class ContextQueryResult(BaseModel):
@@ -62,7 +63,10 @@ class StuffingContextBuilder(ContextBuilder):
         for doc, origin_query_idx in sorted_docs_with_origin:
             if doc.id not in seen_doc_ids and doc.text.strip() != "":
                 snippet = ContextSnippet(
-                    text=doc.text, source=doc.source, metadata=doc.metadata
+                    text=doc.text,
+                    source=doc.source,
+                    metadata=doc.metadata,
+                    score=doc.score
                 )
 
                 # try inserting the snippet into the context
